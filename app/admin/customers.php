@@ -1,0 +1,11 @@
+<?php
+require_once __DIR__.'/../config/database.php'; require_once __DIR__.'/../includes/auth.php'; require_role('admin');
+$title='Pelanggan';
+if(isset($_GET['delete'])){$pdo->prepare("DELETE FROM customers WHERE id=?")->execute([(int)$_GET['delete']]);header('Location:/admin/customers.php');exit;}
+if($_SERVER['REQUEST_METHOD']==='POST'){$id=(int)($_POST['id']??0);$d=[trim($_POST['name']),trim($_POST['phone']),trim($_POST['address'])];if($id)$pdo->prepare("UPDATE customers SET name=?,phone=?,address=? WHERE id=?")->execute([...$d,$id]);else$pdo->prepare("INSERT INTO customers(name,phone,address)VALUES(?,?,?)")->execute($d);header('Location:/admin/customers.php');exit;}
+$edit=null;if(isset($_GET['edit'])){$q=$pdo->prepare("SELECT * FROM customers WHERE id=?");$q->execute([(int)$_GET['edit']]);$edit=$q->fetch();}
+$rows=$pdo->query("SELECT * FROM customers ORDER BY id DESC")->fetchAll();require __DIR__.'/../includes/header.php';?>
+<div class="d-flex justify-content-between"><h2>Pelanggan</h2><a class="btn btn-dark" href="?new=1">+ Tambah</a></div>
+<?php if(isset($_GET['new'])||$edit): ?><div class="card my-3"><div class="card-body"><form method="post" class="row g-2"><input type="hidden" name="id" value="<?=e($edit['id']??0)?>"><div class="col-md-4"><input class="form-control" name="name" placeholder="Nama" value="<?=e($edit['name']??'')?>" required></div><div class="col-md-3"><input class="form-control" name="phone" placeholder="No. HP" value="<?=e($edit['phone']??'')?>" required></div><div class="col-md-5"><input class="form-control" name="address" placeholder="Alamat" value="<?=e($edit['address']??'')?>"></div><div><button class="btn btn-success">Simpan</button></div></form></div></div><?php endif;?>
+<div class="card shadow-sm"><div class="card-body"><table class="table"><tr><th>ID</th><th>Nama</th><th>HP</th><th>Alamat</th><th>Aksi</th></tr><?php foreach($rows as $r):?><tr><td><?=$r['id']?></td><td><?=e($r['name'])?></td><td><?=e($r['phone'])?></td><td><?=e($r['address'])?></td><td><a class="btn btn-sm btn-warning" href="?edit=<?=$r['id']?>">Edit</a> <a class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')" href="?delete=<?=$r['id']?>">Hapus</a></td></tr><?php endforeach;?></table></div></div>
+<?php require __DIR__.'/../includes/footer.php';?>

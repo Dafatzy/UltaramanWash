@@ -1,0 +1,50 @@
+services:
+  web:
+    build: .
+    container_name: ultramanwash-web
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_NAME: carwash_db
+      DB_USER: carwash
+      DB_PASS: carwash123
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    container_name: ultramanwash-db
+    environment:
+      MYSQL_DATABASE: carwash_db
+      MYSQL_USER: carwash
+      MYSQL_PASSWORD: carwash123
+      MYSQL_ROOT_PASSWORD: root123
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot123"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin:5
+    container_name: ultramanwash-phpmyadmin
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      PMA_USER: carwash
+      PMA_PASSWORD: carwash123
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  db_data:

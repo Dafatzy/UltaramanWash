@@ -1,0 +1,5 @@
+<?php
+require_once __DIR__.'/../config/database.php';require_once __DIR__.'/../includes/auth.php';require_role('washer');
+$title='Sedang Dicuci';
+if(isset($_GET['finish'])){$pdo->prepare("UPDATE transactions SET status='completed',completed_at=NOW() WHERE id=? AND status='washing'")->execute([(int)$_GET['finish']]);header('Location:/washer/washing.php');exit;}
+$rows=$pdo->query("SELECT t.*,c.name customer,v.plate_number FROM transactions t JOIN customers c ON c.id=t.customer_id JOIN vehicles v ON v.id=t.vehicle_id WHERE t.status='washing' ORDER BY t.id")->fetchAll();require __DIR__.'/../includes/header.php';?><h2>Sedang Dicuci</h2><div class="card"><div class="card-body"><table class="table"><tr><th>Invoice</th><th>Pelanggan</th><th>Plat</th><th>Mulai</th><th>Aksi</th></tr><?php foreach($rows as $r):?><tr><td><?=$r['invoice_number']?></td><td><?=e($r['customer'])?></td><td><?=e($r['plate_number'])?></td><td><?=$r['created_at']?></td><td><a class="btn btn-sm btn-success" href="?finish=<?=$r['id']?>">Selesai</a></td></tr><?php endforeach;?></table></div></div><?php require __DIR__.'/../includes/footer.php';?>

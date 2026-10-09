@@ -1,0 +1,6 @@
+<?php
+require_once __DIR__.'/../config/database.php'; require_once __DIR__.'/../includes/auth.php'; require_role('admin');$title='Laporan';
+$income=$pdo->query("SELECT COALESCE(SUM(total),0) FROM transactions WHERE payment_status='paid'")->fetchColumn();
+$paid=$pdo->query("SELECT COUNT(*) FROM transactions WHERE payment_status='paid'")->fetchColumn();
+$services=$pdo->query("SELECT s.name,COUNT(td.id) total FROM transaction_details td JOIN services s ON s.id=td.service_id GROUP BY s.id ORDER BY total DESC")->fetchAll();
+require __DIR__.'/../includes/header.php';?><h2>Laporan</h2><div class="row g-3"><div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Pendapatan</div><h3>Rp <?=number_format($income,0,',','.')?></h3></div></div></div><div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted">Transaksi Dibayar</div><h3><?=$paid?></h3></div></div></div></div><div class="card mt-3"><div class="card-body"><h5>Layanan Terpakai</h5><table class="table"><tr><th>Layanan</th><th>Jumlah</th></tr><?php foreach($services as $s):?><tr><td><?=e($s['name'])?></td><td><?=$s['total']?></td></tr><?php endforeach;?></table></div></div><?php require __DIR__.'/../includes/footer.php';?>
